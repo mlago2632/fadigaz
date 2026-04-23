@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>FADI GAZ • COCODY 8E • LIVRAISON EXPRESS PREMIUM</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Confetti Canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* BACKGROUND INTERACTIF */
+        .bg-interactive {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, #ffd70010 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, #c84e1e10 0%, transparent 50%),
+                        #030303;
+            z-index: -2;
+            transition: background 0.05s ease;
+        }
+
+        /* PARTICULES DORÉES */
+        .particules-dorees {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* HEADER */
+        .header-fadi {
+            padding: 30px 20px 20px;
+            text-align: center;
+            position: relative;
+            background: linear-gradient(180deg, #000000cc 0%, transparent 100%);
+        }
+
+        .logo {
+            font-size: clamp(52px, 16vw, 90px);
+            font-weight: 900;
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, #ffffff, #ffd700, #ff8c00, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(255,215,0,0.5);
+            line-height: 1;
+            letter-spacing: 3px;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            25% { transform: scale(1.08); text-shadow: 0 0 50px rgba(255,215,0,0.8); }
+            35% { transform: scale(1.04); }
+            45% { transform: scale(1.08); }
+        }
+
+        .logo.heartbeat { animation: heartbeat 0.6s ease-in-out; }
+
+        .logo-sous-titre {
+            font-size: clamp(11px, 3.5vw, 14px);
+            color: #ffd700;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-top: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 25px;
+            border-radius: 50px;
+            display: inline-block;
+            border: 1px solid rgba(255,215,0,0.4);
+        }
+
+        /* TRUST BADGES */
+        .trust-badge {
+            background: linear-gradient(135deg, #ffd70015, #c84e1e15);
+            border-radius: 60px;
+            padding: 10px 20px;
+            margin: 15px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            border: 1px solid #ffd70030;
+            backdrop-filter: blur(10px);
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: clamp(11px, 3vw, 13px);
+            color: #ffd700;
+        }
+
+        /* PANIER */
+        .panier-float {
+            position: sticky;
+            top: 10px;
+            margin: 0 20px 10px auto;
+            width: fit-content;
+            background: linear-gradient(145deg, #c84e1e, #a13d18);
+            padding: 12px 25px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 0 #7a2e12;
+            border: 2px solid #ffd700;
+            cursor: pointer;
+            float: right;
+            z-index: 100;
+        }
+
+        .panier-count {
+            background: #ffd700;
+            color: black;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+        }
+
+        /* HEATMAP SECTION PREMIUM */
+        .heatmap-section {
+            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(26,26,26,0.6));
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 20px 22px;
+            margin: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+            clear: both;
+        }
+
+        .heatmap-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-name {
+            width: 95px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffd700;
+        }
+
+        .stat-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            border-radius: 10px;
+            animation: fillBar 0.8s ease-out;
+        }
+
+        @keyframes fillBar {
+            from { width: 0%; }
+            to { width: var(--width); }
+        }
+
+        .stat-percent {
+            width: 45px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            text-align: right;
+        }
+
+        .heatmap-note {
+            text-align: right;
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* CARTE GPS */
+        .carte-luxe {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+
+        #map {
+            height: 200px;
+            border-radius: 20px;
+        }
+
+        /* BOUTONS */
+        .btn-3d, .btn-ajouter {
+            position: relative;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.08s linear;
+            border: 1px solid #ffd700;
+        }
+
+        .btn-3d {
+            background: linear-gradient(145deg, #c84e1e, #f05a28);
+            color: white;
+            box-shadow: 0 8px 0 #7a2e12;
+        }
+
+        .btn-3d:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #7a2e12;
+        }
+
+        .btn-ajouter {
+            background: linear-gradient(145deg, #ffd700, #e6b800);
+            color: #000;
+            box-shadow: 0 8px 0 #b8860b;
+        }
+
+        .btn-ajouter:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #b8860b;
+        }
+
+        /* FLAMME AU SURVOL */
+        .btn-ajouter:hover::after {
+            content: "🔥";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: flameFlicker 0.5s infinite;
+            font-size: 18px;
+        }
+
+        @keyframes flameFlicker {
+            0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+            50% { opacity: 0.6; transform: translateY(-55%) scale(1.1); }
+        }
+
+        /* GRILLE PRODUITS */
+        .grille-produits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 20px;
+            padding: 15px;
+        }
+
+        .carte-produit {
+            background: linear-gradient(145deg, #111111, #050505);
+            border: 2px solid rgba(255,215,0,0.25);
+            border-radius: 45px;
+            padding: 22px 18px;
+            text-align: center;
+            box-shadow: 0 12px 0 #9e7b1a;
+            transition: transform 0.3s ease;
+        }
+
+        @media (min-width: 1024px) {
+            .carte-produit:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 17px 0 #9e7b1a;
+            }
+        }
+
+        .image-produit {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #ffd700;
+            background: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .image-produit:active {
+            transform: scale(0.95);
+        }
+
+        .image-produit img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gas-animation {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .gas-animation svg {
+            width: 100%;
+            height: 100%;
+            animation: gasRise 0.8s ease-out forwards;
+        }
+
+        @keyframes gasRise {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(0) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-80px) scale(1.5);
+            }
+        }
+
+        .nom-produit {
+            font-size: 28px;
+            font-weight: 900;
+            font-family: 'Playfair Display', serif;
+            color: #ffd700;
+        }
+
+        .prix-produit {
+            font-size: 22px;
+            margin: 8px 0;
+        }
+
+        /* SÉLECTEUR COULEURS */
+        .selecteur-couleur {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .option-couleur {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            box-shadow: 0 3px 8px black;
+        }
+
+        .option-couleur.selected {
+            border-color: #ffd700;
+            transform: scale(1.12);
+        }
+
+        .couleur-gris-argente { background: #c0c0c0; }
+        .couleur-gris-clair { background: #d3d3d3; }
+        .couleur-rouge-bordeaux { background: #800020; }
+        .couleur-marron { background: #8b4513; }
+        .couleur-orange { background: #ff6600; }
+        .couleur-bleu { background: #0066cc; }
+        .couleur-vert { background: #00cc66; }
+        .couleur-jaune { background: #ffcc00; }
+
+        /* QUANTITÉ */
+        .quantite-selecteur {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .quantite-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #c84e1e;
+            border: 2px solid #ffd700;
+            color: white;
+            font-size: 24px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #7a2e12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantite-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #7a2e12;
+        }
+
+        .quantite-valeur {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffd700;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        /* FORMULAIRE */
+        .formulaire-fadi {
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            padding: 28px 22px;
+            margin: 20px;
+            border: 2px solid #ffd70050;
+        }
+
+        .input-fadi {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid #ffd70040;
+            border-radius: 50px;
+            padding: 14px 20px;
+            width: 100%;
+            margin: 8px 0;
+            color: white;
+            font-size: 15px;
+        }
+
+        .input-fadi:focus {
+            border-color: #ffd700;
+            outline: none;
+        }
+
+        .recap-panier {
+            background: #c84e1e20;
+            border-radius: 35px;
+            padding: 18px;
+            margin: 15px 0;
+        }
+
+        .item-panier {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ffd70030;
+            flex-wrap: wrap;
+        }
+
+        .total-commande {
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffd700;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 2px solid #ffd700;
+        }
+
+        /* SHARE BUTTON */
+        .share-commande {
+            background: #25D366;
+            border-radius: 50px;
+            padding: 12px 20px;
+            margin-top: 15px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 700;
+            transition: transform 0.1s;
+        }
+
+        .share-commande:active {
+            transform: scale(0.98);
+        }
+
+        /* CONTACT BULLES */
+        .contact-bulles {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            z-index: 1000;
+        }
+
+        .bulle {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+            box-shadow: 0 8px 0 #00000066;
+            cursor: pointer;
+            border: 2px solid #ffd700;
+        }
+
+        .bulle:active { transform: translateY(5px); }
+        .bulle.whatsapp { background: #25D366; }
+        .bulle.telephone { background: #c84e1e; }
+
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-weight: 800;
+            z-index: 2000;
+            display: none;
+            background: linear-gradient(145deg, #ffd700, #c84e1e);
+            color: black;
+            white-space: nowrap;
+            max-width: 90vw;
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 40px 20px 100px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .heatmap-section { padding: 15px 18px; margin: 15px; }
+            .stat-name { width: 80px; font-size: 11px; }
+            .stat-percent { font-size: 11px; width: 38px; }
+            .trust-item { font-size: 10px; gap: 5px; }
+            .trust-badge { gap: 15px; }
+            .nom-produit { font-size: 24px; }
+            .prix-produit { font-size: 20px; }
+            .quantite-btn { width: 38px; height: 38px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- BACKGROUND INTERACTIF -->
+    <div class="bg-interactive" id="bgInteractive"></div>
+    <canvas class="particules-dorees" id="particulesCanvas"></canvas>
+
+    <div class="header-fadi">
+        <div class="logo" id="mainLogo">FADI GAZ</div>
+        <div class="logo-sous-titre">ENTREPRISE PREMIUM</div>
+    </div>
+
+    <div class="trust-badge">
+        <div class="trust-item"><i class="fas fa-shield-alt"></i> 🛡️ ISO 9001</div>
+        <div class="trust-item"><i class="fas fa-bolt"></i> ⚡ Livraison < 45 min</div>
+        <div class="trust-item"><i class="fas fa-headset"></i> 💎 SAV 24/7</div>
+        <div class="trust-item" id="live-orders">🔥 Chargement...</div>
+    </div>
+
+    <div class="panier-float" onclick="defilerVersPanier()">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Mon panier</span>
+        <div class="panier-count" id="panier-compteur">0</div>
+    </div>
+
+    <!-- HEATMAP SECTION - VERSION PREMIUM STATS -->
+    <div class="heatmap-section">
+        <div class="heatmap-title">
+            <i class="fas fa-chart-line" style="color: #ffd700;"></i>
+            <span>ACTIVITÉ PAR QUARTIER</span>
+            <i class="fas fa-arrow-trend-up" style="color: #00ff88;"></i>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-name">Cocody 8e</div>
+                <div class="stat-bar"><div class="stat-fill" style="width: 94%;"></div></div>
+                <div class="stat-percent">94%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-name">2 Plateaux</div>
+                <div class="stat-bar"><div class="stat-fill" style="width: 78%;"></div></div>
+                <div class="stat-percent">78%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-name">Riviera</div>
+                <div class="stat-bar"><div class="stat-fill" style="width: 65%;"></div></div>
+                <div class="stat-percent">65%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-name">Marcory</div>
+                <div class="stat-bar"><div class="stat-fill" style="width: 52%;"></div></div>
+                <div class="stat-percent">52%</div>
+            </div>
+        </div>
+        <div class="heatmap-note">
+            <i class="fas fa-chart-simple"></i> Taux d'activité sur 7 jours
+        </div>
+    </div>
+
+    <!-- CARTE GPS -->
+    <div class="carte-luxe">
+        <div id="map" style="height: 200px; border-radius: 20px;"></div>
+        <button class="btn-3d" onclick="localiserUtilisateur()" style="margin-top: 12px;"><i class="fas fa-crosshairs"></i> Actualiser ma position</button>
+    </div>
+
+    <!-- PRODUITS -->
+    <div style="padding: 10px 20px;">
+        <h2 style="color: #ffd700; font-size: clamp(22px, 5vw, 28px);"><i class="fas fa-fire"></i> Nos bouteilles premium</h2>
+    </div>
+
+    <div class="grille-produits">
+        <!-- B6 -->
+        <div class="carte-produit" id="produit-b6">
+            <div class="image-produit" onclick="animateGas(this, 'b6')">
+                <img src="https://image.made-in-china.com/202f0j00URifoGjcvYzF/Nigeria-6kg-Cooking-Gas-Cylinder-Gas-Stove-Price.webp" alt="Bouteille B6">
+            </div>
+            <div class="nom-produit">B6</div>
+            <div class="prix-produit">2 200 F</div>
+            <div class="selecteur-couleur" id="couleurs-b6">
+                <div class="option-couleur couleur-gris-argente selected" data-couleur="Gris Argenté" onclick="selectionnerCouleur('b6', 'Gris Argenté', event)"></div>
+                <div class="option-couleur couleur-gris-clair" data-couleur="Gris Clair" onclick="selectionnerCouleur('b6', 'Gris Clair', event)"></div>
+                <div class="option-couleur couleur-rouge-bordeaux" data-couleur="Rouge Bordeaux" onclick="selectionnerCouleur('b6', 'Rouge Bordeaux', event)"></div>
+                <div class="option-couleur couleur-marron" data-couleur="Marron" onclick="selectionnerCouleur('b6', 'Marron', event)"></div>
+                <div class="option-couleur couleur-orange" data-couleur="Orange" onclick="selectionnerCouleur('b6', 'Orange', event)"></div>
+                <div class="option-couleur couleur-bleu" data-couleur="Bleu" onclick="selectionnerCouleur('b6', 'Bleu', event)"></div>
+                <div class="option-couleur couleur-vert" data-couleur="Vert" onclick="selectionnerCouleur('b6', 'Vert', event)"></div>
+                <div class="option-couleur couleur-jaune" data-couleur="Jaune" onclick="selectionnerCouleur('b6', 'Jaune', event)"></div>
+            </div>
+            <div class="quantite-selecteur">
+                <button class="quantite-btn" onclick="changerQuantite('b6', -1, event)">-</button>
+                <span class="quantite-valeur" id="qte-b6">1</span>
+                <button class="quantite-btn" onclick="changerQuantite('b6', 1, event)">+</button>
+            </div>
+            <button class="btn-ajouter" onclick="ajouterAuPanier('b6', event)"><i class="fas fa-cart-plus"></i> Ajouter</button>
+        </div>
+
+        <!-- B12 -->
+        <div class="carte-produit" id="produit-b12">
+            <div class="image-produit" onclick="animateGas(this, 'b12')">
+                <img src="data:image/jpeg;base64,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" alt="Bouteille B12">
+            </div>
+            <div class="nom-produit">B12</div>
+            <div class="prix-produit">5 400 F</div>
+            <div class="selecteur-couleur" id="couleurs-b12">
+                <div class="option-couleur couleur-gris-argente selected" data-couleur="Gris Argenté" onclick="selectionnerCouleur('b12', 'Gris Argenté', event)"></div>
+                <div class="option-couleur couleur-gris-clair" data-couleur="Gris Clair" onclick="selectionnerCouleur('b12', 'Gris Clair', event)"></div>
+                <div class="option-couleur couleur-rouge-bordeaux" data-couleur="Rouge Bordeaux" onclick="selectionnerCouleur('b12', 'Rouge Bordeaux', event)"></div>
+                <div class="option-couleur couleur-marron" data-couleur="Marron" onclick="selectionnerCouleur('b12', 'Marron', event)"></div>
+                <div class="option-couleur couleur-orange" data-couleur="Orange" onclick="selectionnerCouleur('b12', 'Orange', event)"></div>
+                <div class="option-couleur couleur-bleu" data-couleur="Bleu" onclick="selectionnerCouleur('b12', 'Bleu', event)"></div>
+                <div class="option-couleur couleur-vert" data-couleur="Vert" onclick="selectionnerCouleur('b12', 'Vert', event)"></div>
+                <div class="option-couleur couleur-jaune" data-couleur="Jaune" onclick="selectionnerCouleur('b12', 'Jaune', event)"></div>
+            </div>
+            <div class="quantite-selecteur">
+                <button class="quantite-btn" onclick="changerQuantite('b12', -1, event)">-</button>
+                <span class="quantite-valeur" id="qte-b12">1</span>
+                <button class="quantite-btn" onclick="changerQuantite('b12', 1, event)">+</button>
+            </div>
+            <button class="btn-ajouter" onclick="ajouterAuPanier('b12', event)"><i class="fas fa-cart-plus"></i> Ajouter</button>
+        </div>
+    </div>
+
+    <!-- FORMULAIRE -->
+    <div class="formulaire-fadi">
+        <h3 style="color: #ffd700;">📍 Vos coordonnées</h3>
+        <input type="text" id="client-nom" class="input-fadi" placeholder="Nom complet">
+        <input type="tel" id="client-telephone" class="input-fadi" placeholder="Téléphone WhatsApp">
+        <input type="text" id="client-adresse" class="input-fadi" placeholder="Adresse complète">
+        
+        <div class="recap-panier" id="recap-panier">
+            <div id="articles-panier"></div>
+            <div class="total-commande"><span>TOTAL :</span><span id="total">0 F</span></div>
+        </div>
+
+        <button class="btn-3d" onclick="confirmerCommande()"><i class="fab fa-whatsapp"></i> CONFIRMER MA COMMANDE</button>
+        
+        <div id="shareButton" class="share-commande" style="display: none;" onclick="shareCommande()">
+            <i class="fab fa-whatsapp"></i> 📤 Partager ma commande
+        </div>
+    </div>
+
+    <div class="contact-bulles">
+        <div class="bulle whatsapp" onclick="contacterWhatsApp()"><i class="fab fa-whatsapp"></i></div>
+        <div class="bulle telephone" onclick="contacterTelephone()"><i class="fas fa-phone"></i></div>
+    </div>
+
+    <div class="footer">
+        <p>FADI GAZ • Cocody 8e Tranche • Livraison express</p>
+        <p style="margin-top: 8px;">📍 Paiement à la livraison • Orange Money • MTN • Wave</p>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ==================== CONFIGURATION ====================
+        const WHATSAPP_NUMBER = "2250757375892";
+        const TELEGRAM_TOKEN = "8795455461:AAHJMYVpqX-bzAmSnRPZueKbhEl0n7VixDA";
+        const TELEGRAM_CHAT_ID = "7365120322";
+        const FRAIS_LIVRAISON = 500;
+
+        let carte;
+        let latitudeActuelle = 5.3600;
+        let longitudeActuelle = -3.9800;
+        let derniereCommande = null;
+
+        let produits = {
+            b6: { nom: 'B6', prix: 2200, quantite: 1, couleur: 'Gris Argenté' },
+            b12: { nom: 'B12', prix: 5400, quantite: 1, couleur: 'Gris Argenté' }
+        };
+        let panier = [];
+
+        // ==================== BACKGROUND INTERACTIF ====================
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            const bg = document.getElementById('bgInteractive');
+            bg.style.background = `
+                radial-gradient(circle at ${x * 100}% ${y * 100}%, #ffd70018 0%, transparent 40%),
+                radial-gradient(circle at ${(1 - x) * 100}% ${(1 - y) * 100}%, #c84e1e12 0%, transparent 40%),
+                #030303
+            `;
+        });
+
+        // ==================== PARTICULES DORÉES ====================
+        const canvas = document.getElementById('particulesCanvas');
+        const ctx = canvas.getContext('2d');
+        let particules = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function creerParticule() {
+            return {
+                x: Math.random() * canvas.width,
+                y: canvas.height + Math.random() * 100,
+                radius: Math.random() * 3 + 1,
+                speed: Math.random() * 1.5 + 0.5,
+                opacity: Math.random() * 0.4 + 0.1
+            };
+        }
+
+        for (let i = 0; i < 40; i++) {
+            particules.push(creerParticule());
+        }
+
+        function animerParticules() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particules.forEach(p => {
+                p.y -= p.speed;
+                if (p.y < -50) {
+                    p.y = canvas.height + 50;
+                    p.x = Math.random() * canvas.width;
+                }
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 215, 0, ${p.opacity})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(animerParticules);
+        }
+        animerParticules();
+
+        // ==================== COMPTEUR LIVE ====================
+        function updateLiveOrders() {
+            const orders = Math.floor(Math.random() * (25 - 8 + 1)) + 8;
+            document.getElementById('live-orders').innerHTML = `🔥 ${orders} commandes actives`;
+        }
+        setInterval(updateLiveOrders, 30000);
+        updateLiveOrders();
+
+        // ==================== LOGO BATANT ====================
+        function heartbeatLogo() {
+            const logo = document.getElementById('mainLogo');
+            logo.classList.add('heartbeat');
+            setTimeout(() => logo.classList.remove('heartbeat'), 600);
+        }
+        setInterval(heartbeatLogo, 10000);
+        heartbeatLogo();
+
+        // ==================== ANIMATION GAZ ====================
+        function animateGas(element, produitId) {
+            const rect = element.getBoundingClientRect();
+            const container = document.createElement('div');
+            container.className = 'gas-animation';
+            container.style.position = 'absolute';
+            container.style.top = `${rect.top + window.scrollY - 30}px`;
+            container.style.left = `${rect.left + rect.width / 2}px`;
+            container.innerHTML = `<svg viewBox="0 0 100 100" width="40" height="40">
+                <path fill="#ffd700" d="M50,10 Q60,30 55,50 Q50,70 45,50 Q40,30 50,10Z" opacity="0.9">
+                    <animate attributeName="opacity" values="0.9;0.3;0.9" dur="0.3s" repeatCount="indefinite"/>
+                </path>
+                <path fill="#ff8c00" d="M50,5 Q65,25 60,50 Q55,75 40,50 Q35,25 50,5Z" opacity="0.7">
+                    <animate attributeName="opacity" values="0.7;0.2;0.7" dur="0.4s" repeatCount="indefinite"/>
+                </path>
+            </svg>`;
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 800);
+            afficherNotification(`🔥 ${produits[produitId].nom} - Gaz premium !`);
+        }
+
+        // ==================== GÉOLOCALISATION ====================
+        function localiserUtilisateur() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        latitudeActuelle = pos.coords.latitude;
+                        longitudeActuelle = pos.coords.longitude;
+                        if (!carte) {
+                            carte = L.map('map').setView([latitudeActuelle, longitudeActuelle], 16);
+                            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(carte);
+                        }
+                        carte.setView([latitudeActuelle, longitudeActuelle], 16);
+                        L.marker([latitudeActuelle, longitudeActuelle]).addTo(carte).bindPopup('📍 Votre position').openPopup();
+                    },
+                    () => {
+                        if (!carte) {
+                            carte = L.map('map').setView([5.3600, -3.9800], 14);
+                            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(carte);
+                        }
+                    }
+                );
+            }
+        }
+
+        // ==================== COULEURS & QUANTITÉS ====================
+        function selectionnerCouleur(produit, couleur, event) {
+            event.stopPropagation();
+            const parent = event.target.parentNode;
+            parent.querySelectorAll('.option-couleur').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+            produits[produit].couleur = couleur;
+        }
+
+        function changerQuantite(produit, delta, event) {
+            event.stopPropagation();
+            const nouvelle = produits[produit].quantite + delta;
+            if (nouvelle >= 1 && nouvelle <= 10) {
+                produits[produit].quantite = nouvelle;
+                document.getElementById(`qte-${produit}`).textContent = nouvelle;
+            }
+        }
+
+        // ==================== PANIER ====================
+        function ajouterAuPanier(produitId, event) {
+            event.stopPropagation();
+            const p = produits[produitId];
+            const existant = panier.find(item => item.produitId === produitId && item.couleur === p.couleur);
+            if (existant) existant.quantite += p.quantite;
+            else panier.push({ produitId, nom: p.nom, prix: p.prix, couleur: p.couleur, quantite: p.quantite });
+            produits[produitId].quantite = 1;
+            document.getElementById(`qte-${produitId}`).textContent = '1';
+            mettreAJourPanier();
+            afficherNotification(`✅ ${p.nom} ${p.couleur} ajouté`);
+        }
+
+        function retirerDuPanier(index) { panier.splice(index,1); mettreAJourPanier(); }
+
+        function mettreAJourPanier() {
+            const totalArticles = panier.reduce((s,i)=>s+i.quantite,0);
+            document.getElementById('panier-compteur').textContent = totalArticles;
+            const div = document.getElementById('articles-panier');
+            if (panier.length===0) div.innerHTML = '<p style="color:#888; text-align:center;">Panier vide</p>';
+            else div.innerHTML = panier.map((item,idx)=>`<div class="item-panier"><div><span style="color:#ffd700;">${item.nom}</span><br><span style="font-size:11px;">${item.couleur} x${item.quantite}</span></div><div>${(item.prix*item.quantite).toLocaleString()} F<button onclick="retirerDuPanier(${idx})" style="background:none;border:none;color:#ff4444;margin-left:10px;"><i class="fas fa-trash"></i></button></div></div>`).join('');
+            const sousTotal = panier.reduce((s,i)=>s+(i.prix*i.quantite),0);
+            document.getElementById('total').textContent = (sousTotal+FRAIS_LIVRAISON).toLocaleString()+' F';
+        }
+
+        function defilerVersPanier() { document.getElementById('recap-panier').scrollIntoView({ behavior:'smooth' }); }
+
+        // ==================== CONFETTIS ====================
+        function launchConfetti() {
+            canvasConfetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 },
+                startVelocity: 20,
+                colors: ['#ffd700', '#ff8c00', '#ffffff', '#c84e1e']
+            });
+            setTimeout(() => {
+                canvasConfetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.5, x: 0.3 },
+                    colors: ['#ffd700']
+                });
+            }, 150);
+            setTimeout(() => {
+                canvasConfetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.5, x: 0.7 },
+                    colors: ['#ff8c00']
+                });
+            }, 300);
+        }
+
+        // ==================== SHARE COMMANDE ====================
+        function shareCommande() {
+            if (!derniereCommande) return;
+            const message = `🔥 *MA COMMANDE FADI GAZ* 🔥\n\n` +
+                `👤 Client: ${derniereCommande.nom}\n` +
+                `📦 Produits: ${derniereCommande.produits}\n` +
+                `💰 Total: ${derniereCommande.total} F\n\n` +
+                `📍 Livraison express vers Cocody 8e`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+            afficherNotification('📤 Lien de partage ouvert !');
+        }
+
+        // ==================== COMMANDE ====================
+        function confirmerCommande() {
+            const nom = document.getElementById('client-nom').value;
+            const tel = document.getElementById('client-telephone').value;
+            const adresse = document.getElementById('client-adresse').value;
+            
+            if (panier.length===0) return afficherNotification('Panier vide !','erreur');
+            if (!nom || !tel) return afficherNotification('Remplissez nom + téléphone !','erreur');
+            
+            const sousTotal = panier.reduce((s,i)=>s+(i.prix*i.quantite),0);
+            const total = sousTotal+FRAIS_LIVRAISON;
+            let liste = '';
+            panier.forEach(i=>{ liste += `• ${i.nom} (${i.couleur}) x${i.quantite} = ${(i.prix*i.quantite).toLocaleString()} F\n`; });
+            
+            derniereCommande = {
+                nom: nom,
+                produits: liste,
+                total: total.toLocaleString()
+            };
+            
+            const msgWA = `🔔 COMMANDE FADI GAZ 🔔%0A%0A👤 ${nom}%0A📞 ${tel}%0A📍 ${adresse}%0A📦 ${liste}%0A💰 TOTAL: ${total.toLocaleString()} F`;
+            const msgTG = `🔔 COMMANDE FADI GAZ 🔔\n\n👤 ${nom}\n📞 ${tel}\n📍 ${adresse}\n📦 ${liste}\n💰 TOTAL: ${total.toLocaleString()} F`;
+            
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msgWA}`,'_blank');
+            fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ chat_id:TELEGRAM_CHAT_ID, text:msgTG }) }).catch(()=>{});
+            
+            launchConfetti();
+            afficherNotification('✅ Commande confirmée ! 🎉');
+            
+            document.getElementById('shareButton').style.display = 'flex';
+            
+            panier = [];
+            mettreAJourPanier();
+            
+            produits.b6.couleur = 'Gris Argenté';
+            produits.b12.couleur = 'Gris Argenté';
+            document.querySelectorAll('#couleurs-b6 .option-couleur').forEach((el,i)=>el.classList.toggle('selected',i===0));
+            document.querySelectorAll('#couleurs-b12 .option-couleur').forEach((el,i)=>el.classList.toggle('selected',i===0));
+        }
+
+        function afficherNotification(msg, type='succès') {
+            const n = document.getElementById('notification');
+            n.textContent = msg;
+            n.style.display = 'block';
+            n.style.background = type==='erreur' ? 'linear-gradient(145deg,#ff4444,#cc0000)' : 'linear-gradient(145deg,#ffd700,#c84e1e)';
+            setTimeout(()=>n.style.display='none',3000);
+        }
+
+        function contacterWhatsApp() { window.open(`https://wa.me/${WHATSAPP_NUMBER}`,'_blank'); }
+        function contacterTelephone() { window.location.href = 'tel:+2250757375892'; }
+
+        // INITIALISATION
+        window.onload = () => {
+            localiserUtilisateur();
+            mettreAJourPanier();
+        };
+    </script>
+</body>
+</html>
